@@ -50,6 +50,34 @@ public class RoadsUpldProcess extends Thread
     //=====================================================================
     public void setUserId (long userid) { this.userid = userid; }
     //*********************************************************************
+    public void execute() {
+        //-------------------------------------------
+        boolean goingok = true;
+        //-------------------------------------------
+        if (goingok) 
+            if (!initialize()) goingok = false;
+        //-------------------------------------------
+        if (goingok)
+            if (!startTx()) goingok = false;
+        //-------------------------------------------
+        if (goingok)
+            if (!splitToRows()) goingok = false;
+        //-------------------------------------------
+        if (goingok)
+            if (!loopRows()) goingok = false;
+        //-------------------------------------------
+        if (goingok)
+            if (!commitTx()) goingok = false;
+        //-------------------------------------------
+        if (!goingok) RollbackTx();
+        //-------------------------------------------
+        cleanUp();
+        //-------------------------------------------
+        if (goingok)
+            BackMessagesHolder.addMessage(userid, "Roads added", false);
+    }
+    //*********************************************************************
+    /*
     @Override
     public void run() {
         //-------------------------------------------
@@ -77,6 +105,8 @@ public class RoadsUpldProcess extends Thread
         if (goingok)
             BackMessagesHolder.addMessage(userid, "Roads added", false);
     }
+    */
+    //*********************************************************************
     //=====================================================================
     private boolean initialize () {
         //=========================================================
@@ -149,6 +179,9 @@ public class RoadsUpldProcess extends Thread
         NewRoadItem roaditem;
         //--------------------------------------------------------
         for (String row : inputrows) {
+            
+            System.out.println(row);
+            
             fields = row.split("\\|");
             if (fields.length < FIELDSEXPECTED) continue;
             removeQuotes(fields);
@@ -215,10 +248,16 @@ public class RoadsUpldProcess extends Thread
     //=====================================================================
     private NewUnion[] doUnions (String[] fields) throws HydroException
     {
+        
+        System.out.println("Unions field: " + fields[UNIONSFIELDIND]);
+        
         String[] parents = fields[UNIONSFIELDIND].split(",");
         List<NewUnion> unions = new ArrayList<>();
         NewUnion union;
         for (String parent : parents) {
+            
+            System.out.println("Parent " + parent);
+            
             if (parent.length() < 1) continue;
             union = new NewUnion();
             union.setParent(parent);
